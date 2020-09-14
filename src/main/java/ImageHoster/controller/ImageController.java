@@ -114,14 +114,16 @@ public class ImageController {
         Image image = imageService.getImage(imageId);
 
         User loggeduser = (User) session.getAttribute("loggeduser");
-        if (!checkImageOwner(image.getUser(), loggeduser)) {
-            model.addAttribute("editError", true);
-            model.addAttribute("deleteError", true);
-        }
         String tags = convertTagsToString(image.getTags());
         model.addAttribute("id", imageId);
         model.addAttribute("image", image);
         model.addAttribute("tags", tags);
+        if (!checkImageOwner(image.getUser(), loggeduser)) {
+            model.addAttribute("tags", image.getTags());
+            String error = "Only the owner of the image can edit the image";
+            model.addAttribute("editError", error);
+            return "/images/image";
+        }
         return "images/edit";
     }
 
