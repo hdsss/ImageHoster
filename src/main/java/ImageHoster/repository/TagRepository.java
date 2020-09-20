@@ -6,9 +6,7 @@ import org.springframework.stereotype.Repository;
 import javax.persistence.*;
 
 @Repository
-public class TagRepository {
-    @PersistenceUnit(unitName = "imageHoster")
-    private EntityManagerFactory emf;
+public class TagRepository extends ImageHosterRepository{
 
     public Tag createTag(Tag tag) {
         EntityManager em = emf.createEntityManager();
