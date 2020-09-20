@@ -5,6 +5,7 @@ import java.time.LocalDate;
 
 @Entity
 @Table(name = "comments")
+@NamedQueries({@NamedQuery(name = "searchByImgId", query = "select c from Comment c where image.id = :imgId")})
 public class Comment {
     //@Id annotation specifies that the corresponding attribute is a primary key
     @Id
