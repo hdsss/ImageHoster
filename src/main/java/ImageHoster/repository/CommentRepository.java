@@ -33,10 +33,7 @@ public class CommentRepository extends ImageHosterRepository {
         newComment.setText(comment);
         newComment.setUser(user);
         newComment.setImage(image);
-        newComment.setCreatedDate(LocalDate.n
-
-
-                :ow());
+        newComment.setCreatedDate(LocalDate.now());
         EntityManager em = emf.createEntityManager();
         EntityTransaction transaction = em.getTransaction();
         try {
