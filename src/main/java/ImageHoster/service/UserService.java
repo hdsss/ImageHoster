@@ -38,10 +38,7 @@ public class UserService {
     public boolean isValidPassword(String password) {
 
         // Regex to check valid password.
-        String regex = "^(?=.*[0-9])"
-                + "(?=.*[a-z])(?=.*[A-Z])"
-                + "(?=.*[@#$%^&+=])"
-                + "(?=\\S+$).{8,20}$";
+        String regex = "^(?=.*[a-z])(?=.*[0-9])(?=.*[!@#$%&*()_+=-]).*$";
 
         // Compile the ReGex
         Pattern p = Pattern.compile(regex);
