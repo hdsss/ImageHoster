@@ -6,6 +6,7 @@ import ImageHoster.service.ImageService;
 import ImageHoster.service.UserService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
@@ -78,9 +79,9 @@ public class UserControllerTest {
         user.setProfile(userProfile);
         user.setId(1);
         user.setUsername("Abhi");
-        user.setPassword("Password1@");
+        user.setPassword("password1@");
 
-
+        Mockito.when(userService.isValidPassword(Mockito.anyObject())).thenReturn(true);
         this.mockMvc.perform(post("/users/registration")
                 .flashAttr("user", user)
         )
