@@ -57,6 +57,7 @@ public class ImageController {
      * This method is called when the details of a specific image is to be displayed
      * by passing ID in the url, image details are fetched from database and added to
      * model
+     *
      * @param id
      * @param model
      * @return
@@ -64,6 +65,7 @@ public class ImageController {
     @RequestMapping("/images/{id}/{title}")
     public String showImageById(@PathVariable("id") Integer id, Model model) {
         Image image = imageService.getImage(id);
+        model.addAttribute("id", id);
         model.addAttribute("image", image);
         model.addAttribute("tags", image.getTags());
         return "images/image";
@@ -108,13 +110,32 @@ public class ImageController {
     //The method first needs to convert the list of all the tags to a string containing all the tags separated by a comma and then add this string in a Model type object
     //This string is then displayed by 'edit.html' file as previous tags of an image
     @RequestMapping(value = "/editImage")
-    public String editImage(@RequestParam("imageId") Integer imageId, Model model) {
-        Image image = imageService.getImage(imageId);
+    public String editImage(@RequestParam("imageId") Integer imageId, Model model, HttpSession session) {
 
+        User loggeduser = (User) session.getAttribute("loggeduser");
+        Image image = getImageModel(imageId, model);
+        if (!checkImageOwner(image.getUser(), loggeduser)) {
+            model.addAttribute("tags", image.getTags());
+            String error = "Only the owner of the image can edit the image";
+            model.addAttribute("editError", error);
+            return "/images/image";
+        }
+        return "images/edit";
+    }
+
+    /**
+     * Create a model by getting all details of Image from repository
+     * @param imageId
+     * @param model
+     * @return
+     */
+    private Image getImageModel(Integer imageId, Model model) {
+        Image image = imageService.getImage(imageId);
         String tags = convertTagsToString(image.getTags());
+        model.addAttribute("id", imageId);
         model.addAttribute("image", image);
         model.addAttribute("tags", tags);
-        return "images/edit";
+        return image;
     }
 
     //This controller method is called when the request pattern is of type 'images/edit' and also the incoming request is of PUT type
@@ -130,7 +151,6 @@ public class ImageController {
     //The method converts the string to a list of all the tags using findOrCreateTags() method and sets the tags attribute of an image as a list of all the tags
     @RequestMapping(value = "/editImage", method = RequestMethod.PUT)
     public String editImageSubmit(@RequestParam("file") MultipartFile file, @RequestParam("imageId") Integer imageId, @RequestParam("tags") String tags, Image updatedImage, HttpSession session) throws IOException {
-
         Image image = imageService.getImage(imageId);
         String updatedImageData = convertUploadedFileToBase64(file);
         List<Tag> imageTags = findOrCreateTags(tags);
@@ -151,12 +171,32 @@ public class ImageController {
         return "redirect:/images/" + updatedImage.getTitle();
     }
 
+    /**
+     * Method compare users of ownere & loggedIn user
+     *
+     * @param ownerUser
+     * @param loggedUser
+     * @return
+     */
+    private boolean checkImageOwner(User ownerUser, User loggedUser) {
+        return ownerUser.getId().equals(loggedUser.getId());
+    }
+
 
     //This controller method is called when the request pattern is of type 'deleteImage' and also the incoming request is of DELETE type
     //The method calls the deleteImage() method in the business logic passing the id of the image to be deleted
     //Looks for a controller method with request mapping of type '/images'
     @RequestMapping(value = "/deleteImage", method = RequestMethod.DELETE)
-    public String deleteImageSubmit(@RequestParam(name = "imageId") Integer imageId) {
+    public String deleteImageSubmit(@RequestParam(name = "imageId") Integer imageId, Model model, HttpSession session) {
+        Image image = getImageModel(imageId, model);
+        User loggeduser = (User) session.getAttribute("loggeduser");
+        if (!checkImageOwner(image.getUser(), loggeduser)) {
+            model.addAttribute("tags", image.getTags());
+            String error = "Only the owner of the image can delete the image";
+            model.addAttribute("deleteError", error);
+            return "/images/image";
+        }
+
         imageService.deleteImage(imageId);
         return "redirect:/images";
     }
@@ -197,7 +237,7 @@ public class ImageController {
         for (int i = 0; i <= tags.size() - 2; i++) {
             tagString.append(tags.get(i).getName()).append(",");
         }
-        if(tags.size() == 0){
+        if (tags.size() == 0) {
             return "";
         }
         Tag lastTag = tags.get(tags.size() - 1);
